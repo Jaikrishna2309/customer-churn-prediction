@@ -1,0 +1,81 @@
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+
+# Input data files are available in the read-only "../input/" directory
+# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory
+
+import os
+for dirname, _, filenames in os.walk('/kaggle/input'):
+    for filename in filenames:
+        print(os.path.join(dirname, filename))
+        import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+df=pd.read_csv("C:\\Users\\ammal\\Downloads\\archive (2).zip")
+print(df.shape)
+df.head()
+# Drops RowNumber,CustomerId,Surname these columns
+df.drop(columns = ['RowNumber','CustomerId','Surname'], inplace= True )
+df.isnull().sum()
+df.info()
+#counts
+df['Geography'].value_counts()
+df= pd.get_dummies(df, columns= ['Geography', 'Gender'], drop_first=True)
+X=df.drop(columns=['Exited'])
+y=df['Exited']
+# Split dataset
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size= 0.25, random_state=3)
+from sklearn.preprocessing import StandardScaler
+sc=StandardScaler()
+X_train=sc.fit_transform(X_train)
+X_test=sc.transform(X_test)
+#Build model
+import tensorflow as tf
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+X_train.shape
+
+model = Sequential()
+model.add(Dense(units = X_train.shape[0], activation = 'relu', input_dim = 11))
+model.add(Dense(512, activation = 'relu'))
+model.add(Dropout(0.4))
+model.add(Dense(256, activation = 'relu'))
+model.add(Dropout(0.4))
+model.add(Dense(128, activation = 'relu'))
+model.add(Dense(1, activation = 'sigmoid'))
+model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+model.summary()
+# Early Stopping
+import keras
+early_stopping = keras.callbacks.EarlyStopping(
+monitor = 'val_loss',
+min_delta = 0.0001,
+patience = 10,
+verbose = 1,
+mode = 'auto',
+baseline = None,
+restore_best_weights = False)
+model_history = model.fit(X_train, y_train, validation_split = 0.33, batch_size = 500, epochs = 100, callbacks = early_stopping)
+scores = model.evaluate(X_train, y_train) 
+print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+model_history.history.keys()
+plt.plot(model_history.history['accuracy'])
+plt.plot(model_history.history['val_accuracy'])
+plt.title('model accuracy vs accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epochs')
+plt.legend(['accuracy','val_accuracy'],loc='lower left')
+plt.show()
+plt.plot(model_history.history['loss'])
+plt.plot(model_history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epochs')
+plt.legend(['loss','val_loss'],loc='upper left')
+plt.show()
+
+
+
+
+
